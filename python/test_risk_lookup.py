@@ -16,3 +16,6 @@ def test_unknown_risk_is_unmapped() -> None:
 def test_target_of_seven_has_a_gap() -> None:
     assert runtime_coverage_gap(7) is True
 
+
+def test_runtime_target_of_five_has_no_gap() -> None:
+    assert runtime_coverage_gap(5) is False

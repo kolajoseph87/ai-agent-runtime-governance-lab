@@ -1,13 +1,14 @@
-# Governance Roadmap
+# Secure Agentic Developer Environment Roadmap
 
-- Chapter 1: dual-framework baseline, immutable OWASP mapping, threat model
-- Chapter 2: input validation and goal-manipulation tests
-- Chapter 3: safe mock SOC tools and policy checks before execution
-- Chapter 4: privilege rings, timeouts, call budgets, and kill switch
-- Chapter 5: agent identity and cross-agent trust
-- Chapter 6: audit evidence, metrics, tracing, and SLOs
-- Chapter 7: output filtering and sensitive-data controls
-- Chapter 8: human approval, throttling, and escalation queues
-- Chapter 9: multi-agent attack simulations and chaos tests
-- Chapter 10: CI security checks, SBOM, signed releases, and final report
+- Chapter 1A: original read-only SOC baseline
+- Chapter 1B: dual-framework `SecureCodingAgent`, immutable OWASP mapping, developer-agent threat model
+- Chapter 2: principal identity, agent/tool identity, execution context, trust boundaries, permit/deny pipeline
+- Chapter 3: safe mock repository and test tools with pre-execution policy checks
+- Chapter 4: privilege rings, workspace isolation, timeouts, tool-call budgets, and kill switch
+- Chapter 5: agent identity, MCP server identity, and cross-agent trust
+- Chapter 6: audit evidence, metrics, tracing, dashboards, and SLOs
+- Chapter 7: output filtering for secrets, client data, and unsafe generated code
+- Chapter 8: human approval, risk tiers, throttling, and escalation queues
+- Chapter 9: multi-agent prompt-injection and supply-chain simulations
+- Chapter 10: CI security gates, SAST, SCA, secret scanning, SBOMs, container scanning, and signed releases
 

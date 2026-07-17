@@ -1,54 +1,63 @@
-# Security Incident Agent — Runtime Governance Lab
+# Secure Agentic Developer Environment — Runtime Governance Lab
 
-A dual-framework AI security lab that demonstrates how runtime governance controls protect an autonomous Security Operations Center agent. The same domain is implemented with the OpenAI Agents SDK in Python and Microsoft Agent Framework in .NET.
+A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 1 baseline. This version is intentionally read-only and ungoverned so future controls can be measured against a working baseline. Do not deploy it to production.
+> **Status:** Chapter 1B baseline. The agent performs read-only analysis of synthetic code supplied in the prompt. It has no local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this baseline to production.
 
-## Scenario
+## Business scenario
 
-The `SecurityIncidentAgent` receives a suspicious-login alert involving a finance employee. It explains the risk and recommends safe investigation steps. Later iterations will add controlled SOC tools, runtime policies, identity, privilege limits, audit evidence, output filtering, and human approval.
+An enterprise is introducing AI-assisted coding platforms that can independently write, execute, and iterate on code. The security team must ensure that each agent has a verified identity, minimum necessary privileges, controlled tools, protected secrets, auditable actions, and human approval before sensitive changes or deployments.
 
-## Why this project matters
+`SecureCodingAgent` begins as a simple read-only application-security assistant. Later chapters add capabilities only after the appropriate governance control exists.
 
-Static analysis can find unsafe code, and an API gateway can protect network boundaries. Neither can fully decide whether a live agent is semantically justified in disabling a specific employee account. This lab places governance checkpoints inside the agent loop.
+## Chapter 1B objective
 
-## Architecture
+Establish a working ungoverned baseline before adding policy overhead:
+
+- Equivalent Python and .NET agent wrappers
+- One asynchronous `run` boundary per framework
+- Immutable OWASP control metadata
+- A risk-lookup exercise and tests
+- A developer-agent threat model
+- Explicit disclosure that recommendations are not executed actions
+
+## Baseline flow
 
 ```mermaid
 flowchart TD
-    A[Security alert] --> B[Input policy]
-    B --> C[Agent reasoning]
-    C --> D[Tool authorization]
-    D --> E[Controlled SOC tool]
-    E --> F[Output filter]
-    F --> G[Analyst]
-    B -. evidence .-> H[Audit log]
-    D -. evidence .-> H
-    F -. evidence .-> H
+    A[Developer supplies synthetic code] --> B[SecureCodingAgent]
+    B --> C[Analyze vulnerability]
+    C --> D[Recommend fix and tests]
+    D --> E[Disclose actions actually performed]
 ```
 
-Chapter 1 implements the agent reasoning boundary and threat-model metadata. Dashed and policy-controlled stages are added in later chapters.
+Chapter 2 will wrap this unchanged boundary:
+
+```mermaid
+flowchart TD
+    A[Developer request] --> B{Input policy}
+    B -->|Permit| C[SecureCodingAgent]
+    B -->|Deny| X[Deny and record]
+    C --> D{Output policy}
+    D -->|Permit| E[Developer response]
+    D -->|Deny| X
+```
 
 ## Repository layout
 
 ```text
-python/                         OpenAI Agents SDK baseline and tests
-dotnet/SecurityAgentBaseline/   Microsoft Agent Framework baseline
-docs/THREAT-MODEL.md            Assets, trust boundaries, and abuse cases
-docs/ROADMAP.md                 Planned governance increments
+python/                            OpenAI Agents SDK baseline and tests
+dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
+examples/soc-agent/                Archived Chapter 1A secondary example
+docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
+docs/ROADMAP.md                    Planned governance increments
 ```
 
 ## macOS prerequisites
 
-Install:
+Install Visual Studio Code, Python 3.11+, .NET 8 SDK, and Git. Install the Python, Pylance, and C# Dev Kit VS Code extensions.
 
-- Visual Studio Code
-- Python 3.11 or newer
-- .NET 8 SDK
-- Git
-- VS Code extensions: Python, Pylance, and C# Dev Kit
-
-Verify in the VS Code terminal:
+Verify:
 
 ```bash
 python3 --version
@@ -56,9 +65,7 @@ dotnet --version
 git --version
 ```
 
-## Run the Python baseline
-
-From the repository root:
+## Run Python
 
 ```bash
 python3 -m venv .venv
@@ -66,10 +73,10 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 export OPENAI_API_KEY="your-key-here"
-python python/security_agent.py
+python python/secure_coding_agent.py
 ```
 
-Run the mapping activity and tests:
+Run the Chapter 1 mapping and tests:
 
 ```bash
 python python/risk_lookup.py
@@ -83,53 +90,73 @@ agentmesh-runtime
 True
 ```
 
-## Run the .NET baseline
+## Run .NET
 
 ```bash
-cd dotnet/SecurityAgentBaseline
+cd dotnet/SecureCodingAgentBaseline
 dotnet restore
+dotnet build
 export OPENAI_API_KEY="your-key-here"
 dotnet run
 ```
 
-The Microsoft Agent Framework API evolves quickly. This project uses the current `Microsoft.Agents.AI.OpenAI` provider pattern; validate the package version before production use.
+Microsoft Agent Framework packages evolve quickly. Validate the provider version before production use.
 
-## Security decisions
+## What this baseline does not do
 
-- No secrets are stored in source control.
-- The baseline has no action-taking tools.
-- The OWASP map is immutable threat-model metadata, not enforcement.
-- Non-runtime risks return `unmapped` rather than creating false confidence.
-- Python and .NET expose matching `run` boundaries for later interception.
+| Capability | Chapter 1B state |
+|---|---|
+| Analyze code supplied in the prompt | Available |
+| Recommend fixes and tests | Available |
+| Read files from the laptop | Not available |
+| Change source code | Not available |
+| Execute shell commands | Not available |
+| Install dependencies | Not available |
+| Commit or push code | Not available |
+| Deploy an application | Not available |
+| Enforce permit/deny policies | Added in Chapter 2 |
 
-## Publish to GitHub
+## Security design decisions
 
-Never commit `.env` or an API key. From the repository root:
+- Secrets are loaded through environment variables and excluded from Git.
+- The agent has no action-taking tools in Chapter 1B.
+- Source code and repository instructions are treated as untrusted content.
+- The agent must not claim that recommendations were executed.
+- The OWASP map is threat-model metadata, not a functioning security control.
+- Python and .NET expose matching interception boundaries for Chapter 2.
+- The original SOC baseline remains available as a secondary use case.
 
-```bash
-git init
-git add .
-git status
-git commit -m "Build Chapter 1 security agent governance baseline"
-git branch -M main
-```
+## OWASP examples
 
-Create an empty public repository on GitHub named `ai-agent-runtime-governance-lab`. Do not add a README, license, or `.gitignore` on GitHub because they already exist locally. Then run:
-
-```bash
-git remote add origin https://github.com/YOUR-USERNAME/ai-agent-runtime-governance-lab.git
-git push -u origin main
-```
+See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for coding-agent examples covering memory poisoning, tool misuse, privilege compromise, resource overload, cascading hallucinations, goal manipulation, deceptive behavior, untraceability, identity spoofing, and human-approval overload.
 
 ## Portfolio talking points
 
-- Built equivalent agent boundaries across Python and .NET.
-- Mapped agentic risks to runtime, identity, data, framework, and human-process layers.
-- Separated threat-model metadata from real enforcement.
-- Designed the baseline for measurable policy latency and security testing.
-- Prevented the agent from falsely claiming that recommended containment actually occurred.
+- Built equivalent agent-security boundaries across Python and .NET.
+- Modeled coding-agent risks across runtime, identity, data, framework, and human-process layers.
+- Established a safe, read-only baseline before granting tools or execution privileges.
+- Separated documented control ownership from real runtime enforcement.
+- Designed the project for measurable policy latency and repeatable attack testing.
+- Preserved the original SOC use case to demonstrate reusable governance architecture.
+
+## Safe Git workflow
+
+Never commit `.env` or API keys. Before every commit:
+
+```bash
+git status
+git diff --cached
+```
+
+Commit Chapter 1B separately so reviewers can see the project evolve:
+
+```bash
+git add .
+git commit -m "Refocus Chapter 1 on secure agentic development"
+git push origin main
+```
 
 ## Disclaimer
 
-This is an educational security lab. All identities, alerts, and future tools use synthetic data. The project is not affiliated with or endorsed by Microsoft, OpenAI, or OWASP.
+This is an educational security lab using synthetic code and identities. It is not affiliated with or endorsed by Microsoft, OpenAI, OWASP, McDermott Will & Schulte, or any other employer or client.
 
