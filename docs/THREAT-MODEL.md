@@ -59,5 +59,14 @@ Chapter 1B is deliberately read-only. Filesystem, shell, Git, network, package-m
 
 ## Known gaps
 
-The baseline has no verified principal identity, tool identity, execution context, policy decision, output filter, audit evidence, resource budget, sandbox, or human-approval service. Chapter 2 introduces the first governance pipeline around the unchanged `run` boundary.
+Chapter 2 now models principal, agent, and tool identities; carries them in an immutable execution context; and produces visible decisions at input, tool, and output boundaries. Identities are synthetic and are not yet backed by an enterprise identity provider or cryptographic attestation. The lab still lacks audit persistence, resource budgets, a sandbox, real tools, and a human-approval service.
 
+## Chapter 2 security invariants
+
+- A request without `code:review` cannot reach the model.
+- Instructions attempting to read `.env` files cannot reach the model.
+- A tool absent from the request-entry inventory cannot be invoked.
+- A tool scope must be present in both the tool identity and principal claims.
+- Secret-shaped output cannot return to the developer.
+- Evaluation failures and timeouts deny progression.
+- Every decision retains the request correlation ID.

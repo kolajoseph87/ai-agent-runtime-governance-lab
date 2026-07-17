@@ -11,3 +11,4 @@ def test_baseline_discloses_no_tool_capability() -> None:
     assert "no filesystem" in normalized
     assert "never claim" in normalized
     assert "untrusted data" in normalized
+    assert "account enumeration" in normalized

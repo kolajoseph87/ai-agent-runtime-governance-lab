@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 1B baseline. The agent performs read-only analysis of synthetic code supplied in the prompt. It has no local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this baseline to production.
+> **Status:** Chapter 2 governed baseline. The agent performs read-only analysis of synthetic code behind immutable identity context and configurable input, tool, and output policy boundaries. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
 
 ## Business scenario
 
@@ -10,7 +10,7 @@ An enterprise is introducing AI-assisted coding platforms that can independently
 
 `SecureCodingAgent` begins as a simple read-only application-security assistant. Later chapters add capabilities only after the appropriate governance control exists.
 
-## Chapter 1B objective
+## Completed foundations
 
 Establish a working ungoverned baseline before adding policy overhead:
 
@@ -20,6 +20,12 @@ Establish a working ungoverned baseline before adding policy overhead:
 - A risk-lookup exercise and tests
 - A developer-agent threat model
 - Explicit disclosure that recommendations are not executed actions
+- Immutable principal, agent, tool, and execution-context models
+- Configurable `PRE_INPUT`, `PRE_TOOL`, and `PRE_OUTPUT` attachments
+- A noninvasive governed runner with visible `PERMIT` and `DENY` results
+- Agent-to-policy identity binding that denies mismatched execution contexts
+- Default-deny behavior when a required boundary has no evaluator
+- Fail-closed evaluator timeouts and exceptions
 
 ## Baseline flow
 
@@ -31,7 +37,7 @@ flowchart TD
     D --> E[Disclose actions actually performed]
 ```
 
-Chapter 2 will wrap this unchanged boundary:
+Chapter 2 wraps this unchanged boundary:
 
 ```mermaid
 flowchart TD
@@ -47,8 +53,11 @@ flowchart TD
 
 ```text
 python/                            OpenAI Agents SDK baseline and tests
+python/governance/                 Identity, pipeline, policies, and runner
+python/governed_agent_demo.py      Visible permit/deny demonstration
 dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
 examples/soc-agent/                Archived Chapter 1A secondary example
+docs/CHAPTER-2.md                  Chapter 2 design and demonstrations
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
 ```
@@ -74,6 +83,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 export OPENAI_API_KEY="your-key-here"
 python python/secure_coding_agent.py
+python python/governed_agent_demo.py
 ```
 
 Run the Chapter 1 mapping and tests:
@@ -114,7 +124,8 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 | Install dependencies | Not available |
 | Commit or push code | Not available |
 | Deploy an application | Not available |
-| Enforce permit/deny policies | Added in Chapter 2 |
+| Enforce permit/deny policies | Available at three boundaries |
+| Invoke real development tools | Added in Chapter 3 |
 
 ## Security design decisions
 
@@ -125,6 +136,10 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 - The OWASP map is threat-model metadata, not a functioning security control.
 - Python and .NET expose matching interception boundaries for Chapter 2.
 - The original SOC baseline remains available as a secondary use case.
+- Principal authority and tool capability are independently evaluated.
+- A context cannot gain claims or tools by mutation during a request.
+- Tool authorization runs only when a concrete tool invocation is requested.
+- Pattern checks are documented as educational controls, not production detection.
 
 ## OWASP examples
 
@@ -148,15 +163,14 @@ git status
 git diff --cached
 ```
 
-Commit Chapter 1B separately so reviewers can see the project evolve:
+Commit each chapter separately so reviewers can see the project evolve:
 
 ```bash
 git add .
-git commit -m "Refocus Chapter 1 on secure agentic development"
+git commit -m "Add identity-aware governance pipeline"
 git push origin main
 ```
 
 ## Disclaimer
 
 This is an educational security lab using synthetic code and identities. It is not affiliated with or endorsed by Microsoft, OpenAI, OWASP, McDermott Will & Schulte, or any other employer or client.
-
