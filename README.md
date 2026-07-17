@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 2 governed baseline. The agent performs read-only analysis of synthetic code behind immutable identity context and configurable input, tool, and output policy boundaries. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
+> **Status:** Chapter 3 versioned-policy baseline. The agent performs read-only analysis of synthetic code behind immutable identity context and structured input, tool, and output rule sets. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
 
 ## Business scenario
 
@@ -26,6 +26,10 @@ Establish a working ungoverned baseline before adding policy overhead:
 - Agent-to-policy identity binding that denies mismatched execution contexts
 - Default-deny behavior when a required boundary has no evaluator
 - Fail-closed evaluator timeouts and exceptions
+- Immutable, semantically versioned policy rule sets
+- Deterministic priority ordering and pre-attachment validation
+- Local policy diagnostics for malicious and benign payloads
+- Explicit policy promotion and rollback between `1.0.0` and `1.1.0`
 
 ## Baseline flow
 
@@ -49,15 +53,19 @@ flowchart TD
     D -->|Deny| X
 ```
 
+Chapter 3 fills those boundaries with independently versioned rule sets while keeping the agent unchanged.
+
 ## Repository layout
 
 ```text
 python/                            OpenAI Agents SDK baseline and tests
 python/governance/                 Identity, pipeline, policies, and runner
 python/governed_agent_demo.py      Visible permit/deny demonstration
+python/policy_diagnostics.py       Fast local policy validation harness
 dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
 examples/soc-agent/                Archived Chapter 1A secondary example
 docs/CHAPTER-2.md                  Chapter 2 design and demonstrations
+docs/CHAPTER-3.md                  Chapter 3 policy design and diagnostics
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
 ```
@@ -84,6 +92,8 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="your-key-here"
 python python/secure_coding_agent.py
 python python/governed_agent_demo.py
+python python/policy_diagnostics.py 1.1.0
+python python/policy_diagnostics.py 1.0.0
 ```
 
 Run the Chapter 1 mapping and tests:
@@ -114,7 +124,7 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 
 ## What this baseline does not do
 
-| Capability | Chapter 1B state |
+| Capability | Current state |
 |---|---|
 | Analyze code supplied in the prompt | Available |
 | Recommend fixes and tests | Available |
@@ -125,12 +135,12 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 | Commit or push code | Not available |
 | Deploy an application | Not available |
 | Enforce permit/deny policies | Available at three boundaries |
-| Invoke real development tools | Added in Chapter 3 |
+| Invoke real development tools | Not available; planned for Chapter 4 |
 
 ## Security design decisions
 
 - Secrets are loaded through environment variables and excluded from Git.
-- The agent has no action-taking tools in Chapter 1B.
+- The agent has no action-taking tools through Chapter 3.
 - Source code and repository instructions are treated as untrusted content.
 - The agent must not claim that recommendations were executed.
 - The OWASP map is threat-model metadata, not a functioning security control.
@@ -140,6 +150,8 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 - A context cannot gain claims or tools by mutation during a request.
 - Tool authorization runs only when a concrete tool invocation is requested.
 - Pattern checks are documented as educational controls, not production detection.
+- Policy versions are explicit and unknown versions fail before agent execution.
+- Tool allow rules are layered with principal, inventory, and scope authorization.
 
 ## OWASP examples
 
@@ -152,6 +164,7 @@ See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for coding-agent examples cov
 - Established a safe, read-only baseline before granting tools or execution privileges.
 - Separated documented control ownership from real runtime enforcement.
 - Designed the project for measurable policy latency and repeatable attack testing.
+- Demonstrated policy-as-code versioning, validation, promotion, and rollback.
 - Preserved the original SOC use case to demonstrate reusable governance architecture.
 
 ## Safe Git workflow
@@ -167,7 +180,7 @@ Commit each chapter separately so reviewers can see the project evolve:
 
 ```bash
 git add .
-git commit -m "Add identity-aware governance pipeline"
+git commit -m "Add versioned policies for agent boundaries"
 git push origin main
 ```
 

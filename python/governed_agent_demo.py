@@ -1,4 +1,4 @@
-"""Chapter 2 end-to-end permit and deny demonstration."""
+"""Chapter 3 end-to-end demonstration using versioned policies."""
 
 import asyncio
 import json
@@ -11,13 +11,8 @@ from governance.models import (
     ExecutionContext,
     ToolIdentity,
 )
-from governance.pipeline import EvaluationPipeline, PolicyAttachmentPoint
-from governance.policies import (
-    authorize_tool_request,
-    deny_goal_manipulation,
-    deny_secret_output,
-    require_code_review_claim,
-)
+from governance.pipeline import PolicyAttachmentPoint
+from governance.policy_composition import create_versioned_pipeline
 from governance.runner import AgentPolicySet, GovernedAgentRunner
 from secure_coding_agent import SAMPLE_REVIEW_REQUEST, SecureCodingAgent
 
@@ -25,7 +20,7 @@ from secure_coding_agent import SAMPLE_REVIEW_REQUEST, SecureCodingAgent
 def create_context() -> ExecutionContext:
     return ExecutionContext(
         correlation_id=f"corr-{uuid4()}",
-        session_id="sess-chapter-2",
+        session_id="sess-chapter-3",
         principal=AgentPrincipal(
             principal_id="developer-1042",
             tenant_id="law-firm-demo",
@@ -48,28 +43,11 @@ def create_context() -> ExecutionContext:
     )
 
 
-def create_runner(agent: object | None = None) -> GovernedAgentRunner:
-    pipeline = EvaluationPipeline(timeout_seconds=1.0)
-    pipeline.attach(
-        PolicyAttachmentPoint.PRE_INPUT,
-        "require-code-review-claim",
-        require_code_review_claim,
-    )
-    pipeline.attach(
-        PolicyAttachmentPoint.PRE_INPUT,
-        "deny-goal-manipulation",
-        deny_goal_manipulation,
-    )
-    pipeline.attach(
-        PolicyAttachmentPoint.PRE_TOOL,
-        "authorize-tool-scope",
-        authorize_tool_request,
-    )
-    pipeline.attach(
-        PolicyAttachmentPoint.PRE_OUTPUT,
-        "deny-secret-output",
-        deny_secret_output,
-    )
+def create_runner(
+    agent: object | None = None,
+    policy_version: str = "1.1.0",
+) -> GovernedAgentRunner:
+    pipeline = create_versioned_pipeline(policy_version)
     policy_set = AgentPolicySet(
         agent_id="secure-coding-agent",
         attachments=frozenset(PolicyAttachmentPoint),

@@ -70,3 +70,18 @@ Chapter 2 now models principal, agent, and tool identities; carries them in an i
 - Secret-shaped output cannot return to the developer.
 - Evaluation failures and timeouts deny progression.
 - Every decision retains the request correlation ID.
+
+## Chapter 3 policy invariants
+
+- Policy rule sets and their contained rules cannot mutate during evaluation.
+- Every rule set has exactly one lowest-precedence catch-all rule.
+- Duplicate names and priorities fail validation before runtime attachment.
+- The selected policy version is explicit; an unknown version cannot silently fall back.
+- A tool-policy allow match never bypasses immutable inventory, tool-scope, or principal-claim checks.
+- Tools absent from the allowlist are denied by default.
+- Ordinary security discussion such as password-hardening guidance is not treated as a secret.
+- High-confidence credential shapes and private-key material are denied before output delivery.
+
+## Remaining Chapter 3 gaps
+
+Policy artifacts are local and are not signed or distributed by a central control plane. The matching engine uses typed substring and regex conditions rather than CEL, Rego, or an enterprise DLP service. No real tool executes yet. Audit persistence, approval-controlled policy promotion, sandboxing, resource budgets, and cryptographic identity remain future work.
