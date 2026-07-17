@@ -173,4 +173,4 @@ git push origin main
 
 ## Disclaimer
 
-This is an educational security lab using synthetic code and identities. It is not affiliated with or endorsed by Microsoft, OpenAI, OWASP, McDermott Will & Schulte, or any other employer or client.
+This is an educational security lab using synthetic code and identities. It is not affiliated with or endorsed by Microsoft, OpenAI, OWASP or any other employer or client.
