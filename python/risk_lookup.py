@@ -24,4 +24,3 @@ def runtime_coverage_gap(target_count: int) -> bool:
 if __name__ == "__main__":
     print(resolve_package("T3"))
     print(runtime_coverage_gap(7))
-

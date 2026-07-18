@@ -175,6 +175,7 @@ public static class SecureCodingPolicySet
                 Rule("deny_production_deployer", 100, ConditionKind.ToolIs, "production-deployer", PolicyAction.Deny),
                 Rule("deny_terminal_executor", 110, ConditionKind.ToolIs, "terminal-executor", PolicyAction.Deny),
                 Rule("deny_git_push", 120, ConditionKind.ToolIs, "git-push", PolicyAction.Deny),
+                Rule("allow_prompt_code_reader", 490, ConditionKind.ToolIs, "prompt-code-reader", PolicyAction.Allow),
                 Rule("allow_repository_reader", 500, ConditionKind.ToolIs, "repository-reader", PolicyAction.Allow),
                 Rule("allow_unit_test_runner", 510, ConditionKind.ToolIs, "unit-test-runner", PolicyAction.Allow),
                 Rule("allow_sast_scanner", 520, ConditionKind.ToolIs, "sast-scanner", PolicyAction.Allow),

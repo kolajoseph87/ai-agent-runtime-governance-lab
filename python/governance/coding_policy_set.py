@@ -140,6 +140,15 @@ class SecureCodingPolicySet:
                     "Direct pushes require a later approval workflow",
                 ),
                 PolicyRule(
+                    "allow_prompt_code_reader",
+                    490,
+                    PolicyCondition(
+                        ConditionKind.TOOL_IS, "prompt-code-reader"
+                    ),
+                    PolicyAction.ALLOW,
+                    "Permit the in-memory reader for code already in the prompt",
+                ),
+                PolicyRule(
                     "allow_repository_reader",
                     500,
                     PolicyCondition(

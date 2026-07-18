@@ -23,4 +23,3 @@ OWASP_TOOLKIT_MAP: tuple[OwaspControlMapping, ...] = (
     OwaspControlMapping("T9", "Identity Spoofing and Impersonation", "identity", "agentmesh-platform"),
     OwaspControlMapping("T10", "Overwhelming Human-in-the-Loop", "human process", "N/A"),
 )
-

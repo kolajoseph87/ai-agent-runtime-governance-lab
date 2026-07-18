@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 3 versioned-policy baseline. The agent performs read-only analysis of synthetic code behind immutable identity context and structured input, tool, and output rule sets. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
+> **Status:** Chapter 4 ring-aware runtime. The agent performs read-only analysis of synthetic code behind immutable identity, versioned policies, a Rust Ring 0 hot path, and bounded mock worker processes for higher-risk tools. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
 
 ## Business scenario
 
@@ -30,6 +30,11 @@ Establish a working ungoverned baseline before adding policy overhead:
 - Deterministic priority ordering and pre-attachment validation
 - Local policy diagnostics for malicious and benign payloads
 - Explicit policy promotion and rollback between `1.0.0` and `1.1.0`
+- Risk-based execution-ring assignments for coding tools
+- Rust FFI evaluation for deterministic in-memory operations
+- Bounded restricted workers with scrubbed environments and hard timeouts
+- Default denial for privileged Ring 3 operations pending human approval
+- Attack tests for unknown tools, missing evaluators, oversized payloads, and secret inheritance
 
 ## Baseline flow
 
@@ -55,6 +60,8 @@ flowchart TD
 
 Chapter 3 fills those boundaries with independently versioned rule sets while keeping the agent unchanged.
 
+Chapter 4 routes each authorized concrete tool request through a risk-appropriate execution path. It does not let ring classification bypass Chapter 3 authorization.
+
 ## Repository layout
 
 ```text
@@ -62,17 +69,22 @@ python/                            OpenAI Agents SDK baseline and tests
 python/governance/                 Identity, pipeline, policies, and runner
 python/governed_agent_demo.py      Visible permit/deny demonstration
 python/policy_diagnostics.py       Fast local policy validation harness
+python/ring_runtime_demo.py        Rust/worker/Ring 3 routing demonstration
+python/benchmark_ring_paths.py     Local latency comparison
+hot_path_evaluator/                Rust native policy evaluator
 dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
+dotnet/SandboxWorker/              Restricted .NET mock worker
 examples/soc-agent/                Archived Chapter 1A secondary example
 docs/CHAPTER-2.md                  Chapter 2 design and demonstrations
 docs/CHAPTER-3.md                  Chapter 3 policy design and diagnostics
+docs/CHAPTER-4.md                  Corrected rings, FFI, worker, and attack guide
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
 ```
 
 ## macOS prerequisites
 
-Install Visual Studio Code, Python 3.11+, .NET 8 SDK, and Git. Install the Python, Pylance, and C# Dev Kit VS Code extensions.
+Install Visual Studio Code, Python 3.11+, .NET 8 SDK, Rust, and Git. Install the Python, Pylance, C# Dev Kit, and rust-analyzer VS Code extensions.
 
 Verify:
 
@@ -80,6 +92,8 @@ Verify:
 python3 --version
 dotnet --version
 git --version
+rustc --version
+cargo --version
 ```
 
 ## Run Python
@@ -103,6 +117,15 @@ python python/risk_lookup.py
 PYTHONPATH=python pytest python -v
 ```
 
+Build Rust and run the Chapter 4 paths from the repository root:
+
+```bash
+cargo test --manifest-path hot_path_evaluator/Cargo.toml
+cargo build --release --manifest-path hot_path_evaluator/Cargo.toml
+python python/ring_runtime_demo.py
+python python/benchmark_ring_paths.py
+```
+
 Expected mapping output:
 
 ```text
@@ -113,11 +136,11 @@ True
 ## Run .NET
 
 ```bash
-cd dotnet/SecureCodingAgentBaseline
-dotnet restore
-dotnet build
+dotnet restore dotnet/SecureCodingAgentBaseline/SecureCodingAgentBaseline.csproj
+dotnet build dotnet/SandboxWorker/SandboxWorker.csproj
+dotnet build dotnet/SecureCodingAgentBaseline/SecureCodingAgentBaseline.csproj
 export OPENAI_API_KEY="your-key-here"
-dotnet run
+dotnet run --project dotnet/SecureCodingAgentBaseline/SecureCodingAgentBaseline.csproj
 ```
 
 Microsoft Agent Framework packages evolve quickly. Validate the provider version before production use.
@@ -135,12 +158,13 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 | Commit or push code | Not available |
 | Deploy an application | Not available |
 | Enforce permit/deny policies | Available at three boundaries |
-| Invoke real development tools | Not available; planned for Chapter 4 |
+| Invoke real development tools | Not available; Chapter 4 uses safe simulations |
+| Route mock tools by execution risk | Available |
 
 ## Security design decisions
 
 - Secrets are loaded through environment variables and excluded from Git.
-- The agent has no action-taking tools through Chapter 3.
+- The agent has no real action-taking tools through Chapter 4.
 - Source code and repository instructions are treated as untrusted content.
 - The agent must not claim that recommendations were executed.
 - The OWASP map is threat-model metadata, not a functioning security control.
@@ -152,6 +176,10 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 - Pattern checks are documented as educational controls, not production detection.
 - Policy versions are explicit and unknown versions fail before agent execution.
 - Tool allow rules are layered with principal, inventory, and scope authorization.
+- Ring routing occurs only after PRE_TOOL authorization succeeds.
+- Ring 0 is limited to in-memory operations; read-only alone is not enough.
+- The worker is accurately documented as process isolation, not a complete OS sandbox.
+- Ring 3 remains denied until human approval is implemented.
 
 ## OWASP examples
 
@@ -165,6 +193,8 @@ See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for coding-agent examples cov
 - Separated documented control ownership from real runtime enforcement.
 - Designed the project for measurable policy latency and repeatable attack testing.
 - Demonstrated policy-as-code versioning, validation, promotion, and rollback.
+- Built a cross-language Rust FFI enforcement path and bounded worker model.
+- Corrected unsafe sandbox assumptions and prevented double tool execution.
 - Preserved the original SOC use case to demonstrate reusable governance architecture.
 
 ## Safe Git workflow
@@ -180,7 +210,7 @@ Commit each chapter separately so reviewers can see the project evolve:
 
 ```bash
 git add .
-git commit -m "Add versioned policies for agent boundaries"
+git commit -m "Add ring-aware runtime enforcement"
 git push origin main
 ```
 

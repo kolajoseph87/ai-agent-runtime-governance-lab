@@ -113,12 +113,16 @@ public static class Program
             new AgentPrincipal(
                 "developer-1042",
                 "law-firm-demo",
-                ImmutableHashSet.Create("code:review", "repo:read")),
+                ImmutableHashSet.Create("code:review", "code:read", "repo:read")),
             new AgentIdentity(
                 "secure-coding-agent",
                 "2.0.0-lab",
                 "read-only-code-reviewer"),
             ImmutableHashSet.Create(
+                new ToolIdentity(
+                    "prompt-code-reader",
+                    "1.0.0",
+                    ImmutableHashSet.Create("code:read")),
                 new ToolIdentity(
                     "repository-reader",
                     "1.0.0",
@@ -127,6 +131,20 @@ public static class Program
         const string policyVersion = "1.1.0";
         if (!PolicyDiagnostics.Run(policyVersion, context))
             throw new InvalidOperationException("Policy diagnostics failed");
+
+        var policySet = new AgentPolicySet(
+            "secure-coding-agent",
+            ImmutableHashSet.Create(
+                PolicyAttachmentPoint.PreInput,
+                PolicyAttachmentPoint.PreTool,
+                PolicyAttachmentPoint.PreOutput
+            ));
+        await Chapter4Diagnostics.RunAsync(
+            context,
+            new GovernedAgentRunner(
+                new DiagnosticAgent(),
+                PolicyComposition.CreatePipeline(policyVersion),
+                policySet));
 
         var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -137,13 +155,6 @@ public static class Program
 
         var pipeline = PolicyComposition.CreatePipeline(policyVersion);
 
-        var policySet = new AgentPolicySet(
-            "secure-coding-agent",
-            ImmutableHashSet.Create(
-                PolicyAttachmentPoint.PreInput,
-                PolicyAttachmentPoint.PreTool,
-                PolicyAttachmentPoint.PreOutput
-            ));
         var runner = new GovernedAgentRunner(
             new SecureCodingAgent(new AgentConfiguration(), apiKey),
             pipeline,

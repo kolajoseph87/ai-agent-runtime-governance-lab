@@ -24,7 +24,7 @@ def create_context() -> ExecutionContext:
         principal=AgentPrincipal(
             principal_id="developer-1042",
             tenant_id="law-firm-demo",
-            claims=frozenset({"code:review", "repo:read"}),
+            claims=frozenset({"code:review", "code:read", "repo:read"}),
         ),
         agent=AgentIdentity(
             agent_id="secure-coding-agent",
@@ -33,6 +33,11 @@ def create_context() -> ExecutionContext:
         ),
         tool_inventory=frozenset(
             {
+                ToolIdentity(
+                    tool_name="prompt-code-reader",
+                    tool_version="1.0.0",
+                    allowed_scopes=frozenset({"code:read"}),
+                ),
                 ToolIdentity(
                     tool_name="repository-reader",
                     tool_version="1.0.0",

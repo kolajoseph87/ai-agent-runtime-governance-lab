@@ -5,8 +5,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.10.0" />
-    <ProjectReference Include="../SandboxWorker/SandboxWorker.csproj" />
-  </ItemGroup>
 </Project>

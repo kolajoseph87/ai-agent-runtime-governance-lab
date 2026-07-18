@@ -6,6 +6,6 @@ __pycache__/
 *.py[cod]
 bin/
 obj/
+target/
 .vs/
 .vscode/settings.json
-

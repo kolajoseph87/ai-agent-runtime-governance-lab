@@ -85,3 +85,19 @@ Chapter 2 now models principal, agent, and tool identities; carries them in an i
 ## Remaining Chapter 3 gaps
 
 Policy artifacts are local and are not signed or distributed by a central control plane. The matching engine uses typed substring and regex conditions rather than CEL, Rego, or an enterprise DLP service. No real tool executes yet. Audit persistence, approval-controlled policy promotion, sandboxing, resource budgets, and cryptographic identity remain future work.
+
+## Chapter 4 runtime invariants
+
+- Policy, principal, inventory, and scope authorization occurs before ring routing.
+- Only deterministic in-memory operations can use Ring 0 and Rust FFI.
+- Repository access and scanners route to a bounded worker even when read-only.
+- Untrusted test execution is never classified as a harmless local mutation.
+- Ring 3 operations remain denied until an approval service exists.
+- Unknown tools, missing native libraries, FFI errors, worker failures, malformed output, and timeouts deny.
+- Worker input/output are bounded and concurrency is capped.
+- The child process receives no parent API-key environment variable.
+- Tool name and correlation ID bind worker results to their invocation.
+
+## Remaining Chapter 4 gaps
+
+The worker is process isolation, not an OS security boundary. It deliberately performs mock operations only. Production requires stronger filesystem, identity, CPU, memory, syscall, and network confinement plus signed artifacts, persistent audit evidence, and human approval for privileged actions.
