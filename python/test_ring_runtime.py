@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import FrozenInstanceError
 from pathlib import Path
+import time
 
 import pytest
 
@@ -129,6 +130,62 @@ def test_oversized_worker_payload_is_rejected():
                 {"value": "x" * (65 * 1024)}, "corr-test",
             )
         )
+
+
+def test_worker_timeout_terminates_and_denies(tmp_path):
+    slow_worker = tmp_path / "slow_worker.py"
+    slow_worker.write_text(
+        "import sys, time\nsys.stdin.buffer.read()\ntime.sleep(2)\n",
+        encoding="utf-8",
+    )
+    executor = RestrictedWorkerExecutor(slow_worker, timeout_seconds=0.05)
+    with pytest.raises(SandboxExecutionError, match="timed out"):
+        asyncio.run(executor.execute(
+            "repository-reader", ExecutionRing.RING_1_LOCAL_RESTRICTED,
+            {}, "corr-timeout",
+        ))
+
+
+def test_oversized_worker_output_is_rejected(tmp_path):
+    noisy_worker = tmp_path / "noisy_worker.py"
+    noisy_worker.write_text(
+        "import sys\nsys.stdin.buffer.read()\nsys.stdout.write('x' * (65 * 1024))\n",
+        encoding="utf-8",
+    )
+    executor = RestrictedWorkerExecutor(noisy_worker, timeout_seconds=1)
+    with pytest.raises(SandboxExecutionError, match="output exceeded"):
+        asyncio.run(executor.execute(
+            "repository-reader", ExecutionRing.RING_1_LOCAL_RESTRICTED,
+            {}, "corr-output",
+        ))
+
+
+def test_worker_concurrency_is_bounded(tmp_path):
+    slow_worker = tmp_path / "bounded_worker.py"
+    slow_worker.write_text(
+        "import json, sys, time\n"
+        "request = json.load(sys.stdin)\n"
+        "time.sleep(0.15)\n"
+        "print(json.dumps({'status': 'ok', 'tool': request['tool'], "
+        "'correlation_id': request['correlation_id']}))\n",
+        encoding="utf-8",
+    )
+    executor = RestrictedWorkerExecutor(
+        slow_worker, timeout_seconds=1, max_concurrency=1
+    )
+
+    async def run_two():
+        await asyncio.gather(*(
+            executor.execute(
+                "repository-reader", ExecutionRing.RING_1_LOCAL_RESTRICTED,
+                {}, f"corr-{index}",
+            )
+            for index in range(2)
+        ))
+
+    started = time.monotonic()
+    asyncio.run(run_two())
+    assert time.monotonic() - started >= 0.25
 
 
 def test_missing_rust_library_fails_at_initialization(tmp_path):

@@ -56,11 +56,19 @@ class PolicyRule:
 
 
 @dataclass(frozen=True)
+class PolicyTraceAnnotation:
+    risk_id: str
+    capability: str
+    justification: str
+
+
+@dataclass(frozen=True)
 class PolicyRuleSet:
     name: str
     version: PolicyVersion
     attachment_point: PolicyAttachmentPoint
     rules: tuple[PolicyRule, ...] = field(default_factory=tuple)
+    annotations: tuple[PolicyTraceAnnotation, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -130,6 +138,10 @@ class PolicyValidator:
                 and rule.condition.value is None
             ):
                 errors.append(f"Rule {rule.name} requires a condition value")
+
+        for annotation in rule_set.annotations:
+            if not annotation.risk_id or not annotation.capability:
+                errors.append("Policy annotations require a risk ID and capability")
 
         return tuple(errors)
 

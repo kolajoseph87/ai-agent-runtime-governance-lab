@@ -79,10 +79,10 @@ class RestrictedWorkerExecutor:
                     ),
                     timeout=self._timeout,
                 )
-            except (TimeoutError, SandboxExecutionError) as exc:
+            except (asyncio.TimeoutError, SandboxExecutionError) as exc:
                 process.kill()
                 await process.wait()
-                if isinstance(exc, TimeoutError):
+                if isinstance(exc, asyncio.TimeoutError):
                     raise SandboxExecutionError("Worker timed out and was terminated") from exc
                 raise
             except asyncio.CancelledError:

@@ -15,9 +15,12 @@ public sealed record PolicyCondition(ConditionKind Kind, string? Value = null);
 public sealed record PolicyRule(
     string Name, int Priority, PolicyCondition Condition,
     PolicyAction Action, string Description = "");
+public sealed record PolicyTraceAnnotation(
+    string RiskId, string Capability, string Justification);
 public sealed record PolicyRuleSet(
     string Name, PolicyVersion Version, PolicyAttachmentPoint AttachmentPoint,
-    ImmutableArray<PolicyRule> Rules);
+    ImmutableArray<PolicyRule> Rules,
+    ImmutableArray<PolicyTraceAnnotation> Annotations = default);
 public sealed record PolicyEvaluationContext(
     ExecutionContext ExecutionContext, PolicyAttachmentPoint AttachmentPoint,
     string InputText = "", string ToolName = "", string RequiredScope = "",
@@ -44,6 +47,11 @@ public static class PolicyValidator
         foreach (var rule in ruleSet.Rules.Where(r =>
                      r.Condition.Kind != ConditionKind.MatchAll && string.IsNullOrWhiteSpace(r.Condition.Value)))
             errors.Add($"Rule {rule.Name} requires a condition value");
+        foreach (var annotation in ruleSet.Annotations.IsDefault
+                     ? ImmutableArray<PolicyTraceAnnotation>.Empty : ruleSet.Annotations)
+            if (string.IsNullOrWhiteSpace(annotation.RiskId) ||
+                string.IsNullOrWhiteSpace(annotation.Capability))
+                errors.Add("Policy annotations require a risk ID and capability");
         return errors.ToImmutable();
     }
 
@@ -165,7 +173,10 @@ public static class SecureCodingPolicySet
             rules.Add(Rule("deny_npmrc_collection", 140, ConditionKind.InputContains,
                 "read every .npmrc", PolicyAction.Deny));
         rules.Add(Rule("allow_standard_code_review", 9999, ConditionKind.MatchAll, null, PolicyAction.Allow));
-        return new("secure-coding-input", version, PolicyAttachmentPoint.PreInput, rules.ToImmutableArray());
+        return new("secure-coding-input", version, PolicyAttachmentPoint.PreInput,
+            rules.ToImmutableArray(), ImmutableArray.Create(
+                new PolicyTraceAnnotation("T6", "preinput_goal_policy",
+                    "Versioned PRE_INPUT rules reject known goal-manipulation requests")));
     }
     public static PolicyRuleSet ToolRules(PolicyVersion version)
     {
@@ -179,7 +190,12 @@ public static class SecureCodingPolicySet
                 Rule("allow_repository_reader", 500, ConditionKind.ToolIs, "repository-reader", PolicyAction.Allow),
                 Rule("allow_unit_test_runner", 510, ConditionKind.ToolIs, "unit-test-runner", PolicyAction.Allow),
                 Rule("allow_sast_scanner", 520, ConditionKind.ToolIs, "sast-scanner", PolicyAction.Allow),
-                Rule("deny_unlisted_tool", 9999, ConditionKind.MatchAll, null, PolicyAction.Deny)));
+                Rule("deny_unlisted_tool", 9999, ConditionKind.MatchAll, null, PolicyAction.Deny)),
+            ImmutableArray.Create(
+                new PolicyTraceAnnotation("T2", "tool_allowlist",
+                    "PRE_TOOL policy explicitly allows known tools and denies unknown tools"),
+                new PolicyTraceAnnotation("T3", "least_privilege_tool_scopes",
+                    "Tool policy is layered with immutable inventory and scope authorization")));
     }
     public static PolicyRuleSet OutputRules(PolicyVersion version)
     {

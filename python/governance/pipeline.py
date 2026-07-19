@@ -69,6 +69,25 @@ class EvaluationPipeline:
     ) -> None:
         self._evaluators[point].append((policy_name, evaluator))
 
+    @property
+    def attachment_points(self) -> frozenset[PolicyAttachmentPoint]:
+        return frozenset(
+            point for point, evaluators in self._evaluators.items() if evaluators
+        )
+
+    def configuration_snapshot(self) -> tuple[tuple[str, tuple[str, ...]], ...]:
+        """Return immutable, non-callable metadata for CI/audit fingerprinting."""
+        return tuple(
+            sorted(
+                (
+                    point.value,
+                    tuple(name for name, _ in evaluators),
+                )
+                for point, evaluators in self._evaluators.items()
+                if evaluators
+            )
+        )
+
     async def evaluate(
         self,
         point: PolicyAttachmentPoint,

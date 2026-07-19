@@ -86,6 +86,16 @@ public sealed class EvaluationPipeline
         list.Add((policyName, evaluator));
     }
 
+    public ImmutableHashSet<PolicyAttachmentPoint> AttachmentPoints =>
+        _evaluators.Where(item => item.Value.Count > 0)
+            .Select(item => item.Key).ToImmutableHashSet();
+
+    public ImmutableArray<string> ConfigurationSnapshot =>
+        _evaluators.Where(item => item.Value.Count > 0)
+            .OrderBy(item => item.Key)
+            .Select(item => $"{item.Key}:{string.Join(',', item.Value.Select(v => v.Name))}")
+            .ToImmutableArray();
+
     public async Task<EvaluationResult> EvaluateAsync(
         PolicyAttachmentPoint point,
         ExecutionContext context,

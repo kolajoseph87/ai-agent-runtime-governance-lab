@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 4 ring-aware runtime. The agent performs read-only analysis of synthetic code behind immutable identity, versioned policies, a Rust Ring 0 hot path, and bounded mock worker processes for higher-risk tools. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
+> **Status:** Chapter 5 evidence-audited runtime. The project now measures OWASP control coverage using implemented-and-tested evidence, correct control-layer placement, policy traceability, and a fingerprint of the audited configuration. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
 
 ## Business scenario
 
@@ -35,6 +35,11 @@ Establish a working ungoverned baseline before adding policy overhead:
 - Bounded restricted workers with scrubbed environments and hard timeouts
 - Default denial for privileged Ring 3 operations pending human approval
 - Attack tests for unknown tools, missing evaluators, oversized payloads, and secret inheritance
+- Versioned OWASP control coverage matrix
+- Evidence-backed verified, partial, missing, and external-required findings
+- Policy-to-risk traceability annotations and placement validation
+- SHA-256 fingerprint binding each report to its audited configuration
+- CI-friendly exit behavior that exposes incomplete production coverage
 
 ## Baseline flow
 
@@ -62,6 +67,8 @@ Chapter 3 fills those boundaries with independently versioned rule sets while ke
 
 Chapter 4 routes each authorized concrete tool request through a risk-appropriate execution path. It does not let ring classification bypass Chapter 3 authorization.
 
+Chapter 5 audits the real controls and tests. It does not mistake an empty checkpoint or a written annotation for proof of protection.
+
 ## Repository layout
 
 ```text
@@ -71,6 +78,7 @@ python/governed_agent_demo.py      Visible permit/deny demonstration
 python/policy_diagnostics.py       Fast local policy validation harness
 python/ring_runtime_demo.py        Rust/worker/Ring 3 routing demonstration
 python/benchmark_ring_paths.py     Local latency comparison
+python/control_audit.py            Evidence-based OWASP gap report and CI command
 hot_path_evaluator/                Rust native policy evaluator
 dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
 dotnet/SandboxWorker/              Restricted .NET mock worker
@@ -78,6 +86,8 @@ examples/soc-agent/                Archived Chapter 1A secondary example
 docs/CHAPTER-2.md                  Chapter 2 design and demonstrations
 docs/CHAPTER-3.md                  Chapter 3 policy design and diagnostics
 docs/CHAPTER-4.md                  Corrected rings, FFI, worker, and attack guide
+docs/CHAPTER-5.md                  Coverage evidence, findings, and audit guide
+docs/OWASP-GAP-REPORT.md           Employer-readable current coverage summary
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
 ```
@@ -126,6 +136,15 @@ python python/ring_runtime_demo.py
 python python/benchmark_ring_paths.py
 ```
 
+Run the Chapter 5 audit:
+
+```bash
+python python/control_audit.py
+python python/control_audit.py --fail-on-partial
+```
+
+The second command intentionally returns exit code `2` while production-relevant coverage remains partial.
+
 Expected mapping output:
 
 ```text
@@ -164,7 +183,7 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 ## Security design decisions
 
 - Secrets are loaded through environment variables and excluded from Git.
-- The agent has no real action-taking tools through Chapter 4.
+- The agent has no real action-taking tools through Chapter 5.
 - Source code and repository instructions are treated as untrusted content.
 - The agent must not claim that recommendations were executed.
 - The OWASP map is threat-model metadata, not a functioning security control.
@@ -180,6 +199,9 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 - Ring 0 is limited to in-memory operations; read-only alone is not enough.
 - The worker is accurately documented as process isolation, not a complete OS sandbox.
 - Ring 3 remains denied until human approval is implemented.
+- Audit coverage requires correct-layer implementation and passing-test evidence.
+- Partial findings remain partial; checkpoint presence cannot promote them.
+- Every audit includes the matrix version and configuration fingerprint.
 
 ## OWASP examples
 
@@ -195,6 +217,8 @@ See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for coding-agent examples cov
 - Demonstrated policy-as-code versioning, validation, promotion, and rollback.
 - Built a cross-language Rust FFI enforcement path and bounded worker model.
 - Corrected unsafe sandbox assumptions and prevented double tool execution.
+- Built an evidence-based OWASP gap analyzer that exposes false confidence.
+- Separated runtime coverage from data, framework, identity, infrastructure, and human-process ownership.
 - Preserved the original SOC use case to demonstrate reusable governance architecture.
 
 ## Safe Git workflow
@@ -210,7 +234,7 @@ Commit each chapter separately so reviewers can see the project evolve:
 
 ```bash
 git add .
-git commit -m "Add ring-aware runtime enforcement"
+git commit -m "Add evidence-based OWASP gap analysis"
 git push origin main
 ```
 

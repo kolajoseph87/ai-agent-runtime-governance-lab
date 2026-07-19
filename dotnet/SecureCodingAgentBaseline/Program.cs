@@ -139,11 +139,13 @@ public static class Program
                 PolicyAttachmentPoint.PreTool,
                 PolicyAttachmentPoint.PreOutput
             ));
+        var governancePipeline = PolicyComposition.CreatePipeline(policyVersion);
+        Chapter5Audit.Run(governancePipeline, policyVersion);
         await Chapter4Diagnostics.RunAsync(
             context,
             new GovernedAgentRunner(
                 new DiagnosticAgent(),
-                PolicyComposition.CreatePipeline(policyVersion),
+                governancePipeline,
                 policySet));
 
         var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");

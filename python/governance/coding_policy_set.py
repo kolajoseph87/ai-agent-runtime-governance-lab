@@ -10,6 +10,7 @@ from .policy_engine import (
     PolicyRegistry,
     PolicyRule,
     PolicyRuleSet,
+    PolicyTraceAnnotation,
     PolicyVersion,
 )
 from .policies import SECRET_PATTERN
@@ -104,6 +105,13 @@ class SecureCodingPolicySet:
             version,
             PolicyAttachmentPoint.PRE_INPUT,
             tuple(rules),
+            annotations=(
+                PolicyTraceAnnotation(
+                    "T6",
+                    "preinput_goal_policy",
+                    "Versioned PRE_INPUT rules reject known goal-manipulation requests",
+                ),
+            ),
         )
 
     @classmethod
@@ -181,6 +189,18 @@ class SecureCodingPolicySet:
                     "Explicit allowlist with default deny",
                 ),
             ),
+            annotations=(
+                PolicyTraceAnnotation(
+                    "T2",
+                    "tool_allowlist",
+                    "PRE_TOOL policy explicitly allows known tools and denies unknown tools",
+                ),
+                PolicyTraceAnnotation(
+                    "T3",
+                    "least_privilege_tool_scopes",
+                    "Tool policy is layered with immutable inventory and scope authorization",
+                ),
+            ),
         )
 
     @classmethod
@@ -225,4 +245,5 @@ class SecureCodingPolicySet:
             version,
             PolicyAttachmentPoint.PRE_OUTPUT,
             tuple(patterns),
+            annotations=(),
         )

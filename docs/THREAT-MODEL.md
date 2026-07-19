@@ -101,3 +101,19 @@ Policy artifacts are local and are not signed or distributed by a central contro
 ## Remaining Chapter 4 gaps
 
 The worker is process isolation, not an OS security boundary. It deliberately performs mock operations only. Production requires stronger filesystem, identity, CPU, memory, syscall, and network confinement plus signed artifacts, persistent audit evidence, and human approval for privileged actions.
+
+## Chapter 5 audit invariants
+
+- Attachment presence without implemented and tested evidence cannot create coverage.
+- Evidence must match the required capability, layer, and attachment point.
+- Non-runtime risks cannot be claimed by runtime policy annotations.
+- Partial coverage remains visible and cannot be promoted to verified automatically.
+- Audit findings and evidence records are immutable after analysis.
+- The matrix version and configuration fingerprint accompany every report.
+- T2 is the only risk with all declared lab capabilities currently verified.
+- T3, T4, T6, T8, and T9 remain partial.
+- T1, T5, T7, and T10 require primary controls outside the current runtime.
+
+## Remaining Chapter 5 gaps
+
+Evidence references are local metadata rather than signed CI attestations. Reports are not stored in append-only tamper-evident storage. The lab lacks cryptographic workload identity, full request budgets, a kill switch, semantic prompt-injection detection, persistent audit logs, memory provenance, model-alignment evaluation, and human-approval queue controls.
