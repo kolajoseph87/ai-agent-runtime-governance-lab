@@ -6,7 +6,7 @@
 - Chapter 3: completed — immutable versioned rule sets, priority validation, local diagnostics, and layered input/tool/output enforcement
 - Chapter 4: completed — risk-based execution rings, Rust FFI hot path, bounded mock worker, fail-closed routing, and latency benchmark
 - Chapter 5: completed — versioned OWASP control matrix, evidence-backed gap analysis, traceability annotations, configuration fingerprint, and CI exit behavior
-- Chapter 6: agent identity, MCP server identity, and cross-agent trust
+- Chapter 6: completed — Ed25519-signed delegation, replay prevention, phase-gated memory, Go mesh enforcement, and fail-closed .NET reception
 - Chapter 7: audit evidence, metrics, tracing, dashboards, and SLOs
 - Chapter 8: advanced output filtering for client data and unsafe generated code
 - Chapter 9: human approval, risk tiers, throttling, and escalation queues

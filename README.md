@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 5 evidence-audited runtime. The project now measures OWASP control coverage using implemented-and-tested evidence, correct control-layer placement, policy traceability, and a fingerprint of the audited configuration. It has no real local-file, shell, Git, network, package, MCP, or deployment tools. Do not deploy this lab to production.
+> **Status:** Chapter 6 governed cross-agent delegation lab. Python signs limited Ed25519 delegation tokens, Go enforces default-deny mesh policy, and the .NET receiver fails closed without cryptographic verification. The lab has no real repository, shell, Git, MCP, patch-writing, or deployment integrations. Do not deploy it to production.
 
 ## Business scenario
 
@@ -69,6 +69,8 @@ Chapter 4 routes each authorized concrete tool request through a risk-appropriat
 
 Chapter 5 audits the real controls and tests. It does not mistake an empty checkpoint or a written annotation for proof of protection.
 
+Chapter 6 governs authority moving between agents. Delegations are signed, short-lived, one-use, repository-bound, phase-bound, key-bound, and limited to one delegation hop. A valid handoff still requires local authorization by the receiver.
+
 ## Repository layout
 
 ```text
@@ -87,6 +89,7 @@ docs/CHAPTER-2.md                  Chapter 2 design and demonstrations
 docs/CHAPTER-3.md                  Chapter 3 policy design and diagnostics
 docs/CHAPTER-4.md                  Corrected rings, FFI, worker, and attack guide
 docs/CHAPTER-5.md                  Coverage evidence, findings, and audit guide
+docs/CHAPTER-6.md                  Signed cross-agent delegation and mesh guide
 docs/OWASP-GAP-REPORT.md           Employer-readable current coverage summary
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
@@ -183,7 +186,7 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 ## Security design decisions
 
 - Secrets are loaded through environment variables and excluded from Git.
-- The agent has no real action-taking tools through Chapter 5.
+- The agents have no real action-taking tools through Chapter 6.
 - Source code and repository instructions are treated as untrusted content.
 - The agent must not claim that recommendations were executed.
 - The OWASP map is threat-model metadata, not a functioning security control.

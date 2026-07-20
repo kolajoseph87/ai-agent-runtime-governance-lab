@@ -141,6 +141,7 @@ public static class Program
             ));
         var governancePipeline = PolicyComposition.CreatePipeline(policyVersion);
         Chapter5Audit.Run(governancePipeline, policyVersion);
+        Chapter6Diagnostics.Run();
         await Chapter4Diagnostics.RunAsync(
             context,
             new GovernedAgentRunner(

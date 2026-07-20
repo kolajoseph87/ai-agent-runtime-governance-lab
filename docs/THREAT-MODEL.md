@@ -117,3 +117,18 @@ The worker is process isolation, not an OS security boundary. It deliberately pe
 ## Remaining Chapter 5 gaps
 
 Evidence references are local metadata rather than signed CI attestations. Reports are not stored in append-only tamper-evident storage. The lab lacks cryptographic workload identity, full request budgets, a kill switch, semantic prompt-injection detection, persistent audit logs, memory provenance, model-alignment evaluation, and human-approval queue controls.
+
+
+## Chapter 6 delegation invariants
+
+- Every authorization claim is covered by the Ed25519 signature.
+- Issuer and key ID must map to an explicitly trusted public key.
+- Subject, audience, repository, scope, phase, correlation ID, lifetime, nonce, and delegation depth are enforced.
+- Empty or duplicate scopes, unknown keys, altered claims, expired tokens, replays, and excessive delegation depth deny.
+- The Go mesh uses deny as its zero value and rejects missing policies, oversized input, unknown fields, and trailing JSON.
+- The receiving agent performs local authorization again; mesh approval alone cannot grant a capability.
+- Shared memory is limited by correlation ID and workflow phase.
+
+## Remaining Chapter 6 gaps
+
+Replay and handoff stores are process-local rather than distributed durable stores. The .NET receiver deliberately has no production Ed25519 verifier adapter. Cross-process shared memory, managed-key integration, key revocation, mTLS, protected audit evidence, and network controls preventing sidecar bypass remain production requirements.
