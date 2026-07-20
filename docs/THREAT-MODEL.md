@@ -132,3 +132,17 @@ Evidence references are local metadata rather than signed CI attestations. Repor
 ## Remaining Chapter 6 gaps
 
 Replay and handoff stores are process-local rather than distributed durable stores. The .NET receiver deliberately has no production Ed25519 verifier adapter. Cross-process shared memory, managed-key integration, key revocation, mTLS, protected audit evidence, and network controls preventing sidecar bypass remain production requirements.
+
+## Chapter 7 audit and observability boundary
+
+| Abuse or failure | Lab control | Remaining production gap |
+|---|---|---|
+| Policy silently bypasses malicious input | Test requires boundary-specific denial record and zero agent calls | Signed CI attestation |
+| Evaluator crashes without evidence | Pipeline emits `ERROR` before returning fail-closed denial | Durable emergency buffer |
+| Events from one request cannot be linked | Correlation ID survives sandbox and handoff contexts | Enforced propagation through every external service |
+| Record is modified locally | SHA-256 previous-record chain detects change | Externally anchored or signed append-only evidence |
+| Audit metadata leaks secrets | Lab stores reasons and identifiers, not raw payloads | Enterprise redaction and DLP controls |
+| Audit service is unavailable | Observer failure denies an otherwise allowed lab operation | Risk-tiered buffering and availability design |
+| Allowed controls are mistaken for successful execution | Classification says `control_path_allowed` | Separate model, tool, and business outcome events |
+
+Chapter 7 improves T8 but does not mark it verified. Evidence remains in process memory and is not independently protected, durable, or centrally queryable.

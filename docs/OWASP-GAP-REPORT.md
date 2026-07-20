@@ -1,7 +1,7 @@
-# SecureCodingAgent — Chapter 5 Gap Report
+# SecureCodingAgent — Current Evidence Gap Report
 
-**Matrix:** `secure-coding-lab-2026.1`
-**Audit scope:** Chapters 1B–5 educational controls
+**Matrix:** `secure-coding-lab-2026.2`
+**Audit scope:** Chapters 1B–7 educational controls
 **Production certification:** No
 
 | Risk | Status | Verified evidence | Remaining gap | Primary owner |
@@ -13,7 +13,7 @@
 | T5 Cascading Hallucinations | External required | None | Multi-agent human review and independent verification | Human process |
 | T6 Goal Manipulation | Partial | Tested PRE_INPUT keyword policies | Adversarial semantic detection | Runtime |
 | T7 Misaligned/Deceptive Behavior | External required | None | Model evaluation and independent red team | Framework + Human process |
-| T8 Untraceability | Partial | Correlation ID propagation | Persistent tamper-evident audit | Runtime + Infrastructure |
+| T8 Untraceability | Partial | Correlation propagation, structured policy events, local hash-chain verification | Durable independently protected audit evidence | Runtime + Infrastructure |
 | T9 Identity Spoofing | Partial | Agent-policy binding and tool identity model | Cryptographically verified workload identity | Identity |
 | T10 Human Approval Overload | External required | None | Approval risk tiers and queue throttling | Human process |
 

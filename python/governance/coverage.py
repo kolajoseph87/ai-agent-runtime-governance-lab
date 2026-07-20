@@ -103,7 +103,7 @@ class GapAnalysisReport:
 
 
 class ControlCoverageMatrix:
-    VERSION = "secure-coding-lab-2026.1"
+    VERSION = "secure-coding-lab-2026.2"
 
     def __init__(self) -> None:
         pre_input = PolicyAttachmentPoint.PRE_INPUT
@@ -145,6 +145,8 @@ class ControlCoverageMatrix:
             ), frozenset({ControlLayer.HUMAN_PROCESS})),
             OwaspRiskCoverage(OwaspAgenticRisk.T8, "Repudiation and Untraceability", ControlLayer.RUNTIME, True, (
                 CapabilityRequirement("correlation_id_propagation", ControlLayer.RUNTIME, pre_input),
+                CapabilityRequirement("structured_policy_audit", ControlLayer.RUNTIME, pre_input),
+                CapabilityRequirement("local_audit_integrity_chain", ControlLayer.RUNTIME, pre_input),
                 CapabilityRequirement("persistent_audit_log", ControlLayer.INFRASTRUCTURE),
                 CapabilityRequirement("tamper_evident_evidence", ControlLayer.INFRASTRUCTURE),
             )),

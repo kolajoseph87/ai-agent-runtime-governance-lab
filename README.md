@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 6 governed cross-agent delegation lab. Python signs limited Ed25519 delegation tokens, Go enforces default-deny mesh policy, and the .NET receiver fails closed without cryptographic verification. The lab has no real repository, shell, Git, MCP, patch-writing, or deployment integrations. Do not deploy it to production.
+> **Status:** Chapter 7 auditable governed-agent lab. Every policy evaluator emits structured `ALLOW`, `DENY`, or `ERROR` evidence with correlation and trace context. Security tests verify both enforcement and proof, while a local hash chain detects modified records. The lab has no real repository, shell, Git, MCP, patch-writing, or deployment integrations. Do not deploy it to production.
 
 ## Business scenario
 
@@ -71,6 +71,8 @@ Chapter 5 audits the real controls and tests. It does not mistake an empty check
 
 Chapter 6 governs authority moving between agents. Delegations are signed, short-lived, one-use, repository-bound, phase-bound, key-bound, and limited to one delegation hop. A valid handoff still requires local authorization by the receiver.
 
+Chapter 7 records each policy verdict and proves through tests that the expected boundary fired. Local hash chaining improves lab integrity but does not make in-memory records production audit evidence.
+
 ## Repository layout
 
 ```text
@@ -81,6 +83,7 @@ python/policy_diagnostics.py       Fast local policy validation harness
 python/ring_runtime_demo.py        Rust/worker/Ring 3 routing demonstration
 python/benchmark_ring_paths.py     Local latency comparison
 python/control_audit.py            Evidence-based OWASP gap report and CI command
+python/audit_demo.py                Chapter 7 timeline and failure classification demo
 hot_path_evaluator/                Rust native policy evaluator
 dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
 dotnet/SandboxWorker/              Restricted .NET mock worker
@@ -90,6 +93,7 @@ docs/CHAPTER-3.md                  Chapter 3 policy design and diagnostics
 docs/CHAPTER-4.md                  Corrected rings, FFI, worker, and attack guide
 docs/CHAPTER-5.md                  Coverage evidence, findings, and audit guide
 docs/CHAPTER-6.md                  Signed cross-agent delegation and mesh guide
+docs/CHAPTER-7.md                  Audit schema, evidence tests, and production limits
 docs/OWASP-GAP-REPORT.md           Employer-readable current coverage summary
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
@@ -144,6 +148,8 @@ Run the Chapter 5 audit:
 ```bash
 python python/control_audit.py
 python python/control_audit.py --fail-on-partial
+PYTHONPATH=python python -m pytest python/test_audit.py -v
+PYTHONPATH=python python python/audit_demo.py
 ```
 
 The second command intentionally returns exit code `2` while production-relevant coverage remains partial.
@@ -186,7 +192,7 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 ## Security design decisions
 
 - Secrets are loaded through environment variables and excluded from Git.
-- The agents have no real action-taking tools through Chapter 6.
+- The agents have no real action-taking tools through Chapter 7.
 - Source code and repository instructions are treated as untrusted content.
 - The agent must not claim that recommendations were executed.
 - The OWASP map is threat-model metadata, not a functioning security control.
@@ -205,6 +211,11 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 - Audit coverage requires correct-layer implementation and passing-test evidence.
 - Partial findings remain partial; checkpoint presence cannot promote them.
 - Every audit includes the matrix version and configuration fingerprint.
+- Audit metadata is deeply immutable and excludes raw prompts and secrets.
+- `ALLOW`, `DENY`, and `ERROR` remain separate operational meanings.
+- Correlation IDs link evidence but do not authenticate it.
+- A local hash chain detects modification but is not signed or tamper-proof storage.
+- T8 remains partial until audit evidence is durable and independently protected.
 
 ## OWASP examples
 
@@ -221,6 +232,9 @@ See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for coding-agent examples cov
 - Built a cross-language Rust FFI enforcement path and bounded worker model.
 - Corrected unsafe sandbox assumptions and prevented double tool execution.
 - Built an evidence-based OWASP gap analyzer that exposes false confidence.
+- Instrumented every policy evaluator with identity-, version-, and rule-aware evidence.
+- Built security tests that prove the control fired and prohibited side effects never ran.
+- Reconstructed cross-boundary failure timelines by correlation ID.
 - Separated runtime coverage from data, framework, identity, infrastructure, and human-process ownership.
 - Preserved the original SOC use case to demonstrate reusable governance architecture.
 

@@ -32,4 +32,8 @@ def secure_coding_control_evidence() -> tuple[ControlEvidence, ...]:
             "governance/coding_policy_set.py", "test_policy_engine.py::test_priority_places_specific_deny_before_catch_all_allow", pre_input),
         ControlEvidence("C-T8-CORRELATION", "correlation_id_propagation", ControlLayer.RUNTIME, True, True,
             "governance/models.py", "test_governance_pipeline.py::test_correlation_id_is_preserved_in_decisions", pre_input),
+        ControlEvidence("C-T8-STRUCTURED", "structured_policy_audit", ControlLayer.RUNTIME, True, True,
+            "governance/audit.py", "test_audit.py::test_malicious_input_is_denied_audited_and_never_reaches_agent", pre_input),
+        ControlEvidence("C-T8-LOCAL-CHAIN", "local_audit_integrity_chain", ControlLayer.RUNTIME, True, True,
+            "governance/audit.py", "test_audit.py::test_hash_chain_detects_modified_evidence", pre_input),
     )

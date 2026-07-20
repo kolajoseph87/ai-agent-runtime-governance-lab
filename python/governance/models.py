@@ -42,6 +42,7 @@ class ExecutionContext:
     tool_inventory: frozenset[ToolIdentity] = field(default_factory=frozenset)
     workspace: str = "synthetic://prompt-only"
     environment: str = "development"
+    trace_id: str | None = None
     created_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc)
     )
@@ -53,3 +54,15 @@ class ExecutionContext:
             self,
             principal=replace(self.principal, claims=claims),
         )
+
+    def for_sandbox(self, sandbox_id: str) -> "ExecutionContext":
+        """Preserve the case number while extending the technical trace path."""
+
+        parent = self.trace_id or self.correlation_id
+        return replace(self, trace_id=f"{parent}/sandbox:{sandbox_id}")
+
+    def for_handoff(self, target_framework: str) -> "ExecutionContext":
+        """Keep one correlation ID across a framework handoff."""
+
+        parent = self.trace_id or self.correlation_id
+        return replace(self, trace_id=f"{parent}/handoff:{target_framework}")

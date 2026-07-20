@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 public enum TrustBoundary
 {
@@ -18,6 +19,13 @@ public enum Decision
 {
     Permit,
     Deny
+}
+
+public enum EvaluationOutcome
+{
+    Allow,
+    Deny,
+    Error
 }
 
 public sealed record AgentPrincipal(
@@ -42,7 +50,29 @@ public sealed record ExecutionContext(
     AgentIdentity Agent,
     ImmutableHashSet<ToolIdentity> ToolInventory,
     string Workspace = "synthetic://prompt-only",
-    string Environment = "development");
+    string Environment = "development",
+    string? TraceId = null)
+{
+    public ExecutionContext ForSandbox(string sandboxId) =>
+        this with { TraceId = $"{TraceId ?? CorrelationId}/sandbox:{sandboxId}" };
+
+    public ExecutionContext ForHandoff(string targetFramework) =>
+        this with { TraceId = $"{TraceId ?? CorrelationId}/handoff:{targetFramework}" };
+}
+
+public sealed record PolicyEvaluationEvent(
+    EvaluationOutcome Outcome,
+    string Reason,
+    TrustBoundary Boundary,
+    PolicyAttachmentPoint AttachmentPoint,
+    string CorrelationId,
+    string? TraceId,
+    string PrincipalId,
+    string AgentId,
+    string PolicyName,
+    double DurationMs);
+
+public delegate void EvaluationObserver(PolicyEvaluationEvent policyEvent);
 
 public sealed record EvaluationResult(
     Decision Decision,
@@ -67,6 +97,7 @@ public sealed class EvaluationPipeline
         List<(string Name, PolicyEvaluator Evaluator)>> _evaluators = [];
 
     private readonly TimeSpan _timeout;
+    private readonly List<EvaluationObserver> _observers = [];
 
     public EvaluationPipeline(TimeSpan? timeout = null)
     {
@@ -84,6 +115,40 @@ public sealed class EvaluationPipeline
             _evaluators[point] = list;
         }
         list.Add((policyName, evaluator));
+    }
+
+    public void AttachObserver(EvaluationObserver observer) =>
+        _observers.Add(observer);
+
+    private bool Notify(
+        EvaluationOutcome outcome,
+        string reason,
+        PolicyAttachmentPoint point,
+        ExecutionContext context,
+        string policyName,
+        Stopwatch stopwatch)
+    {
+        var policyEvent = new PolicyEvaluationEvent(
+            outcome,
+            reason,
+            BoundaryFor(point),
+            point,
+            context.CorrelationId,
+            context.TraceId,
+            context.Principal.PrincipalId,
+            context.Agent.AgentId,
+            policyName,
+            Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3));
+        try
+        {
+            foreach (var observer in _observers.ToArray())
+                observer(policyEvent);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public ImmutableHashSet<PolicyAttachmentPoint> AttachmentPoints =>
@@ -105,17 +170,26 @@ public sealed class EvaluationPipeline
         var boundary = BoundaryFor(point);
         if (!_evaluators.TryGetValue(point, out var evaluators))
         {
-            return new EvaluationResult(
+            var missing = new EvaluationResult(
                 Decision.Deny,
                 "No evaluator is attached at the required boundary",
                 boundary,
                 point,
                 context.CorrelationId,
                 "default-deny");
+            Notify(
+                EvaluationOutcome.Deny,
+                missing.Reason,
+                point,
+                context,
+                missing.PolicyName,
+                Stopwatch.StartNew());
+            return missing;
         }
 
         foreach (var (name, evaluator) in evaluators)
         {
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 var evaluation = evaluator(context, payload, cancellationToken);
@@ -125,6 +199,16 @@ public sealed class EvaluationPipeline
 
                 if (!permitted)
                 {
+                    if (!Notify(
+                        EvaluationOutcome.Deny,
+                        reason,
+                        point,
+                        context,
+                        name,
+                        stopwatch))
+                    {
+                        reason = "Audit evidence emission failed closed";
+                    }
                     return new EvaluationResult(
                         Decision.Deny,
                         reason,
@@ -133,12 +217,37 @@ public sealed class EvaluationPipeline
                         context.CorrelationId,
                         name);
                 }
+
+                if (!Notify(
+                    EvaluationOutcome.Allow,
+                    reason,
+                    point,
+                    context,
+                    name,
+                    stopwatch))
+                {
+                    return new EvaluationResult(
+                        Decision.Deny,
+                        "Audit evidence emission failed closed",
+                        boundary,
+                        point,
+                        context.CorrelationId,
+                        "audit-fail-closed");
+                }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                var reason = $"Policy evaluation failed closed: {ex.GetType().Name}";
+                Notify(
+                    EvaluationOutcome.Error,
+                    reason,
+                    point,
+                    context,
+                    name,
+                    stopwatch);
                 return new EvaluationResult(
                     Decision.Deny,
-                    $"Policy evaluation failed closed: {ex.GetType().Name}",
+                    reason,
                     boundary,
                     point,
                     context.CorrelationId,

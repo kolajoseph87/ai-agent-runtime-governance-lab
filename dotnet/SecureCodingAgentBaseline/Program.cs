@@ -142,6 +142,7 @@ public static class Program
         var governancePipeline = PolicyComposition.CreatePipeline(policyVersion);
         Chapter5Audit.Run(governancePipeline, policyVersion);
         Chapter6Diagnostics.Run();
+        Chapter7Diagnostics.Run(governancePipeline, context);
         await Chapter4Diagnostics.RunAsync(
             context,
             new GovernedAgentRunner(
@@ -157,6 +158,9 @@ public static class Program
         }
 
         var pipeline = PolicyComposition.CreatePipeline(policyVersion);
+        var runtimeAuditStore = new InMemoryAuditStore();
+        pipeline.AttachObserver(
+            new PipelineAuditObserver(runtimeAuditStore, policyVersion).Record);
 
         var runner = new GovernedAgentRunner(
             new SecureCodingAgent(new AgentConfiguration(), apiKey),
@@ -176,6 +180,9 @@ public static class Program
             "repo:read",
             context);
         Print("TOOL REQUEST", toolDecision);
+        Console.WriteLine(
+            $"Runtime audit: records={runtimeAuditStore.Snapshot().Length}; " +
+            $"integrity={runtimeAuditStore.VerifyIntegrity()}");
     }
 
     private static void Print(string label, object value)

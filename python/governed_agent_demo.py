@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict
 from uuid import uuid4
 
+from governance.audit import InMemoryAuditStore, PipelineAuditObserver
 from governance.models import (
     AgentIdentity,
     AgentPrincipal,
@@ -51,8 +52,11 @@ def create_context() -> ExecutionContext:
 def create_runner(
     agent: object | None = None,
     policy_version: str = "1.1.0",
+    audit_store: InMemoryAuditStore | None = None,
 ) -> GovernedAgentRunner:
     pipeline = create_versioned_pipeline(policy_version)
+    store = audit_store or InMemoryAuditStore()
+    pipeline.attach_observer(PipelineAuditObserver(store, policy_version))
     policy_set = AgentPolicySet(
         agent_id="secure-coding-agent",
         attachments=frozenset(PolicyAttachmentPoint),
