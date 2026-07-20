@@ -103,7 +103,7 @@ class GapAnalysisReport:
 
 
 class ControlCoverageMatrix:
-    VERSION = "secure-coding-lab-2026.2"
+    VERSION = "secure-coding-lab-2026.3"
 
     def __init__(self) -> None:
         pre_input = PolicyAttachmentPoint.PRE_INPUT
@@ -128,6 +128,8 @@ class ControlCoverageMatrix:
                 CapabilityRequirement("worker_timeout", ControlLayer.RUNTIME, pre_tool),
                 CapabilityRequirement("payload_output_bounds", ControlLayer.RUNTIME, pre_tool),
                 CapabilityRequirement("worker_concurrency_limit", ControlLayer.INFRASTRUCTURE, pre_tool),
+                CapabilityRequirement("policy_latency_budget", ControlLayer.RUNTIME, pre_tool),
+                CapabilityRequirement("component_readiness", ControlLayer.INFRASTRUCTURE),
                 CapabilityRequirement("agent_request_budget", ControlLayer.RUNTIME, pre_input),
                 CapabilityRequirement("kill_switch", ControlLayer.INFRASTRUCTURE),
             ), frozenset({ControlLayer.RUNTIME})),

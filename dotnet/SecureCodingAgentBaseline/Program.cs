@@ -143,6 +143,7 @@ public static class Program
         Chapter5Audit.Run(governancePipeline, policyVersion);
         Chapter6Diagnostics.Run();
         Chapter7Diagnostics.Run(governancePipeline, context);
+        Chapter8Diagnostics.Run();
         await Chapter4Diagnostics.RunAsync(
             context,
             new GovernedAgentRunner(

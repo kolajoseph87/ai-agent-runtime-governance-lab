@@ -2,7 +2,7 @@
 
 A dual-framework AI security lab demonstrating how to govern coding agents that can eventually read repositories, call development tools, execute commands, and interact with CI/CD systems. The same security boundaries are developed in Python with the OpenAI Agents SDK and in .NET with Microsoft Agent Framework.
 
-> **Status:** Chapter 7 auditable governed-agent lab. Every policy evaluator emits structured `ALLOW`, `DENY`, or `ERROR` evidence with correlation and trace context. Security tests verify both enforcement and proof, while a local hash chain detects modified records. The lab has no real repository, shell, Git, MCP, patch-writing, or deployment integrations. Do not deploy it to production.
+> **Status:** Chapter 8 production-operations lab. Policies move through guarded development, staging, and production channels with persistent activation history, safe rollback, drift detection, boundary latency budgets, and readiness checks. The lab has no real repository, shell, Git, MCP, patch-writing, or deployment integrations. Do not deploy it to production.
 
 ## Business scenario
 
@@ -73,6 +73,10 @@ Chapter 6 governs authority moving between agents. Delegations are signed, short
 
 Chapter 7 records each policy verdict and proves through tests that the expected boundary fired. Local hash chaining improves lab integrity but does not make in-memory records production audit evidence.
 
+Chapter 8 operates policies as versioned security software: validate, stage, promote,
+monitor, detect drift, and roll back only the exact bad version. Critical boundaries
+fail closed and unhealthy enforcement components fail readiness.
+
 ## Repository layout
 
 ```text
@@ -84,6 +88,7 @@ python/ring_runtime_demo.py        Rust/worker/Ring 3 routing demonstration
 python/benchmark_ring_paths.py     Local latency comparison
 python/control_audit.py            Evidence-based OWASP gap report and CI command
 python/audit_demo.py                Chapter 7 timeline and failure classification demo
+python/operations_demo.py           Chapter 8 promotion, readiness, drift, rollback demo
 hot_path_evaluator/                Rust native policy evaluator
 dotnet/SecureCodingAgentBaseline/  Microsoft Agent Framework baseline
 dotnet/SandboxWorker/              Restricted .NET mock worker
@@ -94,6 +99,7 @@ docs/CHAPTER-4.md                  Corrected rings, FFI, worker, and attack guid
 docs/CHAPTER-5.md                  Coverage evidence, findings, and audit guide
 docs/CHAPTER-6.md                  Signed cross-agent delegation and mesh guide
 docs/CHAPTER-7.md                  Audit schema, evidence tests, and production limits
+docs/CHAPTER-8.md                  Deployment, SLO, promotion, rollback, drift, health
 docs/OWASP-GAP-REPORT.md           Employer-readable current coverage summary
 docs/THREAT-MODEL.md               Assets, actors, boundaries, abuse cases
 docs/ROADMAP.md                    Planned governance increments
@@ -150,6 +156,8 @@ python python/control_audit.py
 python python/control_audit.py --fail-on-partial
 PYTHONPATH=python python -m pytest python/test_audit.py -v
 PYTHONPATH=python python python/audit_demo.py
+PYTHONPATH=python pytest python/test_operations.py -v
+PYTHONPATH=python python python/operations_demo.py
 ```
 
 The second command intentionally returns exit code `2` while production-relevant coverage remains partial.
@@ -192,7 +200,7 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 ## Security design decisions
 
 - Secrets are loaded through environment variables and excluded from Git.
-- The agents have no real action-taking tools through Chapter 7.
+- The agents have no real action-taking tools through Chapter 8.
 - Source code and repository instructions are treated as untrusted content.
 - The agent must not claim that recommendations were executed.
 - The OWASP map is threat-model metadata, not a functioning security control.
@@ -216,6 +224,11 @@ Microsoft Agent Framework packages evolve quickly. Validate the provider version
 - Correlation IDs link evidence but do not authenticate it.
 - A local hash chain detects modification but is not signed or tamper-proof storage.
 - T8 remains partial until audit evidence is durable and independently protected.
+- Policies must move development → staging → production; direct promotion is rejected.
+- Critical input and tool checks cannot be configured to fail open.
+- Rollback verifies the currently active bad version and deduplicates incident triggers.
+- Readiness fails when required governance state is unavailable.
+- Chapter 8 is an operations-pattern lab, not a production control plane.
 
 ## OWASP examples
 
@@ -235,6 +248,7 @@ See [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) for coding-agent examples cov
 - Instrumented every policy evaluator with identity-, version-, and rule-aware evidence.
 - Built security tests that prove the control fired and prohibited side effects never ran.
 - Reconstructed cross-boundary failure timelines by correlation ID.
+- Implemented guarded policy promotion, stale-safe rollback, drift checks, SLOs, and readiness.
 - Separated runtime coverage from data, framework, identity, infrastructure, and human-process ownership.
 - Preserved the original SOC use case to demonstrate reusable governance architecture.
 

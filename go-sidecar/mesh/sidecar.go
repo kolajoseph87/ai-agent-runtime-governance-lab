@@ -226,8 +226,41 @@ type Server struct {
 	Ingress Guard
 }
 
+func (s Server) ready() (bool, string) {
+	validator := s.Ingress.Validator
+	if strings.TrimSpace(validator.ExpectedAudienceID) == "" ||
+		strings.TrimSpace(validator.ExpectedSubjectID) == "" {
+		return false, "expected mesh identity is not configured"
+	}
+	if len(validator.IssuerPublicKeys) == 0 {
+		return false, "trusted issuer keys are unavailable"
+	}
+	if validator.Replay == nil {
+		return false, "replay protection is unavailable"
+	}
+	if len(s.Ingress.Policies) == 0 {
+		return false, "mesh policies are unavailable"
+	}
+	return true, "ready"
+}
+
 func (s Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "unhealthy", "reason": "GET required"})
+			return
+		}
+		ready, reason := s.ready()
+		if !ready {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "unhealthy", "reason": reason})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "healthy", "reason": reason})
+	})
 	mux.HandleFunc("/v1/delegate", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if r.Method != http.MethodPost {

@@ -4,6 +4,9 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -102,5 +105,32 @@ func TestIngressDeniesExcessiveDelegationDepth(t *testing.T) {
 	env.Signature = base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, payload))
 	if verdict, _ := guard.Evaluate(env); verdict != MeshDeny {
 		t.Fatal("excessive delegation depth must be denied")
+	}
+}
+
+func TestReadinessHealthyWhenRequiredStateExists(t *testing.T) {
+	_, guard, _ := fixture(t)
+	request := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	response := httptest.NewRecorder()
+	Server{Ingress: guard}.Handler().ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected ready, got %d: %s", response.Code, response.Body.String())
+	}
+	if !strings.Contains(response.Body.String(), `"status":"healthy"`) {
+		t.Fatal("readiness response should be healthy")
+	}
+}
+
+func TestReadinessFailsClosedWithoutReplayProtection(t *testing.T) {
+	_, guard, _ := fixture(t)
+	guard.Validator.Replay = nil
+	request := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	response := httptest.NewRecorder()
+	Server{Ingress: guard}.Handler().ServeHTTP(response, request)
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected unavailable, got %d", response.Code)
+	}
+	if strings.Contains(response.Body.String(), "lab-key-1") {
+		t.Fatal("health response must not disclose key identifiers")
 	}
 }

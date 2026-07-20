@@ -146,3 +146,23 @@ Replay and handoff stores are process-local rather than distributed durable stor
 | Allowed controls are mistaken for successful execution | Classification says `control_path_allowed` | Separate model, tool, and business outcome events |
 
 Chapter 7 improves T8 but does not mark it verified. Evidence remains in process memory and is not independently protected, durable, or centrally queryable.
+
+## Chapter 8 production-operations invariants
+
+- A policy cannot jump directly from development to production.
+- Production receives the exact policy version that was active in staging.
+- Activation and rollback use expected-current-version checks to reject stale writes.
+- Critical input and tool controls cannot be configured to fail open.
+- Duplicate incident triggers cannot repeatedly roll policy state backward.
+- Drift compares running state with an independently approved baseline.
+- Readiness fails when required policy, identity, replay, or mesh state is absent.
+- Readiness responses do not reveal keys, tokens, raw exceptions, or configuration secrets.
+- Native hot-path evaluation denies after shutdown and cleanup is idempotent.
+
+## Remaining Chapter 8 gaps
+
+The activation file is local rather than a distributed transactional control plane.
+Audit and activation writes are not atomic. Policies and baselines are not signed.
+Latency enforcement is local and the lab still lacks an agent-wide request budget,
+kill switch, production orchestration manifests, central metrics, and automated
+approval workflow. These gaps keep T4 and T8 partial.

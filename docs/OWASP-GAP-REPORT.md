@@ -1,7 +1,7 @@
 # SecureCodingAgent — Current Evidence Gap Report
 
-**Matrix:** `secure-coding-lab-2026.2`
-**Audit scope:** Chapters 1B–7 educational controls
+**Matrix:** `secure-coding-lab-2026.3`
+**Audit scope:** Chapters 1B–8 educational controls
 **Production certification:** No
 
 | Risk | Status | Verified evidence | Remaining gap | Primary owner |
@@ -9,7 +9,7 @@
 | T1 Memory Poisoning | External required | None | Memory write integrity and provenance | Data |
 | T2 Tool Misuse | Verified in lab | Tool allowlist, inventory/scope authorization, ring routing | Production tool integrations still absent | Runtime |
 | T3 Privilege Compromise | Partial | Least-privilege scopes and agent-policy binding | Verified workload identity | Runtime + Identity |
-| T4 Resource Overload | Partial | Worker timeout, payload/output bounds, concurrency cap | Agent-wide budget and kill switch | Infrastructure + Runtime |
+| T4 Resource Overload | Partial | Worker bounds, concurrency cap, policy latency budget, component readiness | Agent-wide request budget and kill switch | Infrastructure + Runtime |
 | T5 Cascading Hallucinations | External required | None | Multi-agent human review and independent verification | Human process |
 | T6 Goal Manipulation | Partial | Tested PRE_INPUT keyword policies | Adversarial semantic detection | Runtime |
 | T7 Misaligned/Deceptive Behavior | External required | None | Model evaluation and independent red team | Framework + Human process |
